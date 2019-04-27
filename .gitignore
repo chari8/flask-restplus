@@ -62,3 +62,7 @@ doc/_build/
 # Specifics
 flask_restplus/static
 node_modules
+
+# dev env stuff:
+.vscode
+venv
