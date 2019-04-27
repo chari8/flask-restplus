@@ -580,7 +580,9 @@ class Swagger(object):
         return ref(model)
 
     def register_schema(self, schema):
-        pass
+        for ma_field in itervalues(schema):
+            self.register_field(ma_field)
+        return ref(schema)
 
     def register_field(self, field):
         if isinstance(field, fields.Polymorph):
