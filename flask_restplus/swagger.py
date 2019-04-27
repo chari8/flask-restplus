@@ -14,6 +14,8 @@ from six import string_types, itervalues, iteritems, iterkeys
 
 from flask import current_app
 from werkzeug.routing import parse_rule
+from marshmallow import Schema as ma_Schema
+# from marshmallow import fields as ma_fields
 
 from . import fields
 from .model import Model, ModelBase
@@ -21,6 +23,9 @@ from .reqparse import RequestParser
 from .utils import merge, not_none, not_none_sorted
 from ._http import HTTPStatus
 
+
+# DEBUG
+import pprint
 
 #: Maps Flask/Werkzeug rooting types to Swagger ones
 PATH_TYPES = {
@@ -51,6 +56,15 @@ RE_RAISES = re.compile(r'^:raises\s+(?P<name>[\w\d_]+)\s*:\s*(?P<description>.*)
 def ref(model):
     '''Return a reference to model in definitions'''
     name = model.name if isinstance(model, ModelBase) else model
+    if isinstance(model, ModelBase):
+        name = model.name
+
+    elif isinstance(model, ma_Schema):
+        # ToDo
+        name = model
+
+    else:
+        name = model
     return {'$ref': '#/definitions/{0}'.format(name)}
 
 
@@ -530,6 +544,10 @@ class Swagger(object):
             self.register_model(model)
             return ref(model)
 
+        elif isinstance(model, ma_Schema):
+            self.register_schema(model)
+            return ref(model)
+
         elif isinstance(model, string_types):
             self.register_model(model)
             return ref(model)
@@ -550,6 +568,8 @@ class Swagger(object):
         if name not in self.api.models:
             raise ValueError('Model {0} not registered'.format(name))
         specs = self.api.models[name]
+        # DEBUG
+        pprint.pprint(specs)
         self._registered_models[name] = specs
         if isinstance(specs, ModelBase):
             for parent in specs.__parents__:
@@ -558,6 +578,9 @@ class Swagger(object):
             for field in itervalues(specs):
                 self.register_field(field)
         return ref(model)
+
+    def register_schema(self, schema):
+        pass
 
     def register_field(self, field):
         if isinstance(field, fields.Polymorph):
